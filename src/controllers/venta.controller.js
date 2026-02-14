@@ -3,6 +3,7 @@
 import pool from '../config/database.js';
 import { generatePDF } from '../controllers/pdf/pdf.controller.js';
 import { getProductos } from './producto.controller.js';
+import validators from '../utils/validators.js';
 
 const cache = new Map();
 
@@ -26,9 +27,13 @@ export const ventaController = async (req, res) => {
         }
          //hacer la llamada al generarPDF
         //await generatePDF(productosJSONformato, res);
-        console.log('Venta procesada con exito');
         await connection.commit();
-       res.status(201).json({message: 'venta realizada con exito', ventaId: ventaId, total: productosJSONformato.total});
+       res.status(201).json(
+        {
+            ok: true,
+            message: 'venta realizada con exito', 
+            ventaId: ventaId, 
+            total: productosJSONformato.total});
         
         //res.status(201).json({message: 'venta realizada con enxito'});
     } catch (error) {
@@ -45,13 +50,23 @@ async function getJsonProductos(productos) {
         total: 0
     };
     for (const product of productos){
+        //controlar en esta parte los datos
+        if(!validators.validateVenta(product, /^\d+$/, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)){
+            throw new Error(`Datos incorrectos para el producto con id ${product.id_producto}`);
+        }
+        //si ocurre un error se retorna un error al cliente y no se procesa la venta
         const producDetail = await getProductos(product.id_producto);
         const sub = Math.round(producDetail[0].precio * product.cantidad)/100;
         const productoInfo = {
+            //que sea numero
             id: product.id_producto,
+            //que sea texto
             nombre: producDetail[0].nombre,
+            //diferente de 0 y que sea numero y mayor a 0
             precio: producDetail[0].precio,
+            //que sea numero y mayor a 0
             cantidad: product.cantidad,
+            //que sea numero y mayor a 0
             subTotal: sub
         }
         productosJSON.producto.push(productoInfo);

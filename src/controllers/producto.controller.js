@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-
+import validators from '../utils/validators.js';
 
 
 export const getProductos = async (id) => {
@@ -58,9 +58,14 @@ export const getProductosAll = async (req, res) => {
 //api para crear productos
 export const createProduct = async (req, res) => {
     const data = req.body;
+    const regexNumeros = /^\+?(\d.*){7,15}$/;
     const query = 'CALL create_product(?, ?, ?, @resultado)';
-    const precio = Number(data.precio);
-    const id_categoria = Number(data.id_categoria);
+    if (!validators.validatorProducto(data, regexNumeros)){
+        return res.status(400).json({
+            ok: false,            
+            message: "datos incorrectos"
+        });
+    }
     let result = null;
     try{12
         if(validar(precio) && validar(id_categoria)){

@@ -1,30 +1,24 @@
 import pool from '../config/database.js';
 import bcrypt from 'bcryptjs';
+import validators from '../utils/validators.js';
 
 export const createEmpleado = async (req, res) => {
-   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-   const phoneRegexBO = /^(?:\+591\s?)?[67]\d{7}$/;
-   const textRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,50}$/;
-   const textRegexCargo = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s-]{2,50}$/;
    const data = req.body;
+   const regexTexto = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+   const regexNumeros = /^\+?(\d.*){7,15}$/;
    const query = `INSERT INTO 
                 empleado (ci, nombre, apellidos, direccion, telefono, cargo, usuario, pasword)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 `;
-    /*
-    if(!validar(emailRegex.test(data.correo), phoneRegexBO.test(data.telefono), textRegex.test(data.nombre), textRegex.test(data.apellidos), textRegexCargo.test(data.cargo))){
+    if (!validators.validateEmpleado(data, regexNumeros, regexTexto)){
         return res.status(400).json({
             ok: false,
             message: "datos incorrectos"
         });
     }
-    */
     //implementar correo electronico en la tabla empleado
-
+    //nota importante: transformar los datos en mayuscula o minuscula para evitar errores de validacion
     try {
-        //cambiar el valor de pasword en la bd de empleados para que acepte
-        //mas de 20 caracteres
-        //
         const passwordHash = await bcrypt.hash(data.password, 10);
         let ci = parseInt(data.ci);
         const result = await pool.execute(query,

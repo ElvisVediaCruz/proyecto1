@@ -38,6 +38,23 @@ const validators = {
     },
     validateLogin(user, password){
         return (user.length > 0 && password.length > 0);
+    },
+    validatorProducto(producto, regexNumber){
+        const precioValid = this.validateRegex(producto.precio, regexNumber);
+        const id_categoriaValid = this.validateRegex(producto.id_categoria, regexNumber);
+        return {
+            isValid: precioValid && id_categoriaValid
+        }
+    },
+    validateVenta(producto, regexNumber, regexTexto){
+        const idValid = this.validateRegex(producto.id_producto, regexNumber);
+        const nombreValid = this.validateRegex(producto.nombre, regexTexto);
+        const precioValid = this.validateRegex(producto.precio, regexNumber);
+        const cantidadValid = this.validateRegex(producto.cantidad, regexNumber);
+        const mayorCeroValid = parseInt(producto.cantidad) > 0 && parseInt(producto.precio) > 0;
+        return {
+            isValid: nombreValid && precioValid && cantidadValid && idValid && mayorCeroValid
+        }
     }
 }
 
