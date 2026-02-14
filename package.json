@@ -1,0 +1,22 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "tienda de barrio, solo registrara las ventas",
+  "license": "ISC",
+  "author": "Elvis Vedia Cruz",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "mysql2": "^3.16.0",
+    "pdfkit": "^0.17.2",
+    "socket.io": "^4.8.3"
+  }
+}
