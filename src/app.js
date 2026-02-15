@@ -15,11 +15,15 @@ import loginRoute from './routes/login.route.js';
 const app = express();
 
 app.use(cors());
-app.use(express.json({limit: '50mb'}));
+
 app.use(express.urlencoded({limit: '50mb', extended: true}));
-
-app.use(express.json());
-
+app.use(express.json({limit: '50mb'}));
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ message: "JSON inválido" });
+  }
+  next(err);
+});
 app.use(session({
   secret: secret_session,
   resave: false,
@@ -28,10 +32,6 @@ app.use(session({
 }))
 
 
-app.use((err, req, res, next) => {
-  console.error('ERROR JSON:', err.message);
-  res.status(400).json({ error: err.message });
-});
 
 
 app.use('/login', loginRoute);
@@ -40,6 +40,9 @@ app.use('/ventas', ventaRoutes);
 app.use('/registrar', registrarRoutes);
 app.use('/pdf', pdfRoutes);
 app.use('/empleados', empleadoRoute);
+
+
+
 
 app.use(errorHandler);
 

@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import validators from '../utils/validators.js'
 
 
-export const loginEmpleado = async (req, res) => {
+export const loginEmpleado = async (req, res, next) => {
     const data = req.body;
     //console.log(data)
     if(!validators.validateLogin(data.usuario, data.password)) return res.status(400).json({ok: false, message: "campos obligatorios"});
@@ -12,18 +12,12 @@ export const loginEmpleado = async (req, res) => {
     try {
         const [rows] = await pool.execute(query, [data.usuario]);
         if(rows.length === 0){
-            return res.status(400).json({
-                ok: false,
-                message: "Usuario no encontrado"
-            });
+            return next(new Error("Usuario no encontrado"));
         }
         const empleado = rows[0];
         const passwordMatch = await bcrypt.compare(data.password, empleado.pasword);
         if(!passwordMatch){
-                return res.status(400).json({
-                    ok: false,
-                    message: "Contraseña incorrecta"
-                });
+            return next(new Error("Contraseña incorrecta"));
         }
         req.session.usuario = {
             nombre: empleado.nombre,
@@ -37,20 +31,14 @@ export const loginEmpleado = async (req, res) => {
             usuario: req.session.usuario
         })
     } catch (error) {
-        res.status(400).json({
-            ok: false,
-            error: error.message
-        })
+        next(error)
     }
 }
 
-export const logoutEmpleado = (req, res) => {
+export const logoutEmpleado = (req, res, next) => {
     req.session.destroy((err) => {
         if (err) {
-            return res.status(400).json({
-                ok: false,
-                message: "Error al cerrar sesión"
-            });
+            return next(err);
         }
         res.clearCookie('connect.sid');
         res.status(200).json({

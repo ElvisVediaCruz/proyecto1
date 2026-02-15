@@ -11,13 +11,10 @@ export const getProductos = async (id) => {
             producto: rows[0]
         })
     } catch (error) {
-        res.status(400).json({
-            ok: false,
-            error: error.message
-        })
+        next(error);
     }
 }
-export const countProducts = async (req, res) => {
+export const countProducts = async (req, res, next) => {
     const query = "SELECT COUNT(nombre) as total FROM producto";
     //agregar stock a productos en la BD
     //const query = "SELECT COUNT(nombre) as total COUNT(STOCK) as stock FROM producto";
@@ -30,13 +27,10 @@ export const countProducts = async (req, res) => {
         });
         
     } catch (error) {
-        res.status(400).json({
-            ok:false,
-            error: error.message
-        })
+        next(error);
     }
 }
-export const getProductosAll = async (req, res) => {
+export const getProductosAll = async (req, res, next) => {
     let ofset = Number(req.params.page) || 0;
     let limit = 10;
     let off = ofset * limit;
@@ -49,53 +43,42 @@ export const getProductosAll = async (req, res) => {
             products: result
         })
     } catch (error) {
-        res.status(400).json({
-            ok:false,
-            error: error.message
-        })
+        next(error);
     }
 }
 //api para crear productos
-export const createProduct = async (req, res) => {
+export const createProduct = async (req, res, next) => {
     const data = req.body;
     const regexNumeros = /^\+?(\d.*){7,15}$/;
     const query = 'CALL create_product(?, ?, ?, @resultado)';
     if (!validators.validatorProducto(data, regexNumeros)){
-        return res.status(400).json({
-            ok: false,            
-            message: "datos incorrectos"
-        });
+        return next(new Error("Datos incorrectos"));
     }
     let result = null;
     try{12
-        if(validar(precio) && validar(id_categoria)){
+        if(validar(data.precio) && validar(data.id_categoria)){
             result = await pool.execute(query, 
             [
                 data.nombre,
-                precio,
-                id_categoria
+                data.precio,
+                data.id_categoria
             ]);
             const resultado = await pool.execute('SELECT @resultado as resultado');
-            console.log([[resultado]]);
             res.status(201).json({
                 ok: true,
                 message: resultado[0][0].resultado
             })
         }else{
-            throw new Error('El precio del producto no es el correcto')
+            return next(new Error("Precio e id_categoria deben ser números"));
         }
     }catch(error){
-        res.status(400).json({
-            ok:false,
-            message: error.message
-        })
+        next(error);
     }
 }
-export const updateProduct = async (req, res) => {
+export const updateProduct = async (req, res, next) => {
     const data = req.body;
     //pensar como ariamos para que solo actualize los que se modificaron
     //modificar consulta SQL
-    console.log(data);
     const query = "UPDATE producto set nombre = ?, precio = ? WHERE id = ? ";
     try{
         const response = await pool.execute(query, 
@@ -109,10 +92,7 @@ export const updateProduct = async (req, res) => {
             ok: true
         })
     }catch(error){
-        res.status(400).json({
-            ok: false,
-            message: error.message
-        })
+        next(error);
     }
 }
 

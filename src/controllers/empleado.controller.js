@@ -2,7 +2,7 @@ import pool from '../config/database.js';
 import bcrypt from 'bcryptjs';
 import validators from '../utils/validators.js';
 
-export const createEmpleado = async (req, res) => {
+export const createEmpleado = async (req, res, next) => {
    const data = req.body;
    const regexTexto = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
    const regexNumeros = /^\+?(\d.*){7,15}$/;
@@ -11,10 +11,7 @@ export const createEmpleado = async (req, res) => {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 `;
     if (!validators.validateEmpleado(data, regexNumeros, regexTexto)){
-        return res.status(400).json({
-            ok: false,
-            message: "datos incorrectos"
-        });
+        return next(new Error("Datos incorrectos, revise los datos ingresados"));
     }
     //implementar correo electronico en la tabla empleado
     //nota importante: transformar los datos en mayuscula o minuscula para evitar errores de validacion
@@ -37,22 +34,16 @@ export const createEmpleado = async (req, res) => {
                 usuario:"Se agrego correctamente el usuario"
             })
     } catch (error) {
-        console.log(error)
-        res.status(400).json({
-            ok: false,
-            error: error.message
-        })
+        nex(error);
     }
 }
-export const getEmpleados = async (req, res) => {
+export const getEmpleados = async (req, res, next) => {
     const query = "SELECT ci, nombre, apellidos, direccion, telefono, cargo, usuario FROM empleado";
     let result = null;
     try {
         result = await pool.execute(query);
         if(!result){
-            return res.status(400).json({
-                ok: false
-            });
+            return next(new Error("Error al obtener los empleados"));
         }
         const [empleados] = result;
         res.status(200).json({
@@ -60,11 +51,7 @@ export const getEmpleados = async (req, res) => {
             empleados: empleados
         })
     } catch (error) {
-        console.log(error)
-        res.status(400).json({
-            ok: false,
-            error: error.message
-        })
+        next(error);
     }
 }
 function validar(correo, telefono, nombre, apellidos, cargo){

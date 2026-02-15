@@ -7,7 +7,7 @@ import validators from '../utils/validators.js';
 
 const cache = new Map();
 
-export const ventaController = async (req, res) => {
+export const ventaController = async (req, res, next) => {
 
     //productos solo recibira los datos del id y la cantidad
     let productosJSONformato = null;
@@ -38,7 +38,7 @@ export const ventaController = async (req, res) => {
         //res.status(201).json({message: 'venta realizada con enxito'});
     } catch (error) {
         await connection.rollback();
-        res.status(500).json({ message: 'Error al procesar la venta', error: error.message });
+        next(error);
     } finally{
         if (connection) connection.release();
     }
@@ -52,7 +52,7 @@ async function getJsonProductos(productos) {
     for (const product of productos){
         //controlar en esta parte los datos
         if(!validators.validateVenta(product, /^\d+$/, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)){
-            throw new Error(`Datos incorrectos para el producto con id ${product.id_producto}`);
+            return next(new Error("Datos de producto no válidos"));
         }
         //si ocurre un error se retorna un error al cliente y no se procesa la venta
         const producDetail = await getProductos(product.id_producto);
@@ -77,7 +77,7 @@ async function getJsonProductos(productos) {
 }
 
 //funciones para get para mostrar el dashboard
-export const getData = async (req, res) => {
+export const getData = async (req, res, next) => {
     const [actual] = await obtenerVentasPorIntervalo(1);
     const [anterior] = await obtenerVentasPorIntervalo(2);
     const datosSeparadosActual = separarDatos(actual, "actual");
@@ -133,7 +133,7 @@ async function obtenerVentasPorIntervalo (fecha){
         const [rows] = await pool.execute(query, [fecha]);
         return rows;
     } catch (error) {
-        throw error;
+        next(error);
     }
 }
 
