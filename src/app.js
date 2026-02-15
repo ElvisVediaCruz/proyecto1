@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import session from'express-session';
 import { secret_session, expire_session } from'../src/config/env.js';
+import errorHandler from './middleware/error.middleware.js';
 
 
 import productoRoutes from './routes/producto.routes.js';
@@ -39,5 +40,7 @@ app.use('/ventas', ventaRoutes);
 app.use('/registrar', registrarRoutes);
 app.use('/pdf', pdfRoutes);
 app.use('/empleados', empleadoRoute);
+
+app.use(errorHandler);
 
 export default app;
