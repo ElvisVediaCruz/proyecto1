@@ -12,33 +12,36 @@ export const ventaController = async (req, res, next) => {
     //productos solo recibira los datos del id y la cantidad
     let productosJSONformato = null;
     let connection = null;
+    
+    const query_a = 'INSERT INTO venta (total, fecha) VALUES (?, ?)';
+    const query_b = 'INSERT INTO transaccion (cantidad, id_venta, id_producto) VALUES (?, ?, ?)';
     try {
         const {productos, fecha} = req.body;
         connection = await pool.getConnection();
         await connection.beginTransaction();
         productosJSONformato = await getJsonProductos(productos);
-        const query_a = 'INSERT INTO venta (total, fecha) VALUES (?, ?)';
-        const query_b = 'INSERT INTO transaccion (cantidad, id_venta, id_producto) VALUES (?, ?, ?)';
         const [ventaResult] = await pool.execute(query_a, [productosJSONformato.total, fecha]);
         const ventaId = ventaResult.insertId;
-
         for (const productostransaccion of productosJSONformato.producto){
             await pool.execute(query_b, [productostransaccion.cantidad, ventaId, productostransaccion.id]);
         }
          //hacer la llamada al generarPDF
-        //await generatePDF(productosJSONformato, res);
+        const pdfPath = await generatePDF(productosJSONformato);
         await connection.commit();
-       res.status(201).json(
+        return res.status(201).json(
         {
             ok: true,
             message: 'venta realizada con exito', 
             ventaId: ventaId, 
-            total: productosJSONformato.total});
+            total: productosJSONformato.total,
+            pdfPath: pdfPath});
         
         //res.status(201).json({message: 'venta realizada con enxito'});
     } catch (error) {
         await connection.rollback();
+        console.error('Error en la transacción de venta: ', error);
         next(error);
+        //res.status(500).json({message: error.message});
     } finally{
         if (connection) connection.release();
     }
@@ -82,7 +85,6 @@ export const getData = async (req, res, next) => {
     const [anterior] = await obtenerVentasPorIntervalo(2);
     const datosSeparadosActual = separarDatos(actual, "actual");
     const datosSeparadosAnterior = separarDatos(anterior, "anterior");
-    console.log("datos separados actual:", datosSeparadosActual);
     let data = unirDatos(datosSeparadosActual, datosSeparadosAnterior);
     data = data.map(item => {
         const incremento = calcularIncrementoPorcentual(item.valorN, item.anterior);
@@ -102,7 +104,7 @@ export const getData = async (req, res, next) => {
     //console.log("mayor incremento:", mayorIncremento);
     const top5 = dataOrdenada.slice(-5).reverse();
     //console.log("total ingreso mes:", totalIngresoActual);
-    res.json({
+    return res.json({
         totalIngresoActual: totalIngresoActual,
         totalIngresoAnterior: totalIngresoAnterior,
         incrementoIngreso: incrementoIngreso,

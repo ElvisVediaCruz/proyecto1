@@ -25,10 +25,10 @@ export const loginEmpleado = async (req, res, next) => {
             usuario: empleado.usuario
         }
         req.session.loginTime = Date.now();
-        res.status(200).json({
+        return res.status(200).json({
             ok: true,
             message: "Login exitoso",
-            usuario: req.session.usuario
+            usuario: req.session
         })
     } catch (error) {
         next(error)

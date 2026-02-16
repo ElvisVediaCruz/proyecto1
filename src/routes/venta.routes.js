@@ -1,10 +1,10 @@
 import {Router} from "express";
 import {ventaController, getData} from "../controllers/venta.controller.js";
-import middleware from '../middleware/session.js';
+import session from '../middleware/session.js';
 
 const router = Router();
 
-router.post('/venta', middleware, ventaController);
-router.get('/data-dashboard', middleware, getData);
+router.post('/venta', session, ventaController);
+router.get('/data-dashboard', session, getData);
 
 export default router;

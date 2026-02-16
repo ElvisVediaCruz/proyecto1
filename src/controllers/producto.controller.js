@@ -6,12 +6,9 @@ export const getProductos = async (id) => {
     const idObtenido = id;
     try {
         const [rows] = await pool.execute('SELECT nombre, precio FROM producto WHERE id = ?', [idObtenido]);
-        res.status(200).json({
-            ok: true,
-            producto: rows[0]
-        })
+        return rows;
     } catch (error) {
-        next(error);
+        return null;
     }
 }
 export const countProducts = async (req, res, next) => {
