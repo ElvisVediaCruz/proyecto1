@@ -45,6 +45,9 @@ export const getProductosAll = async (req, res, next) => {
 }
 //api para crear productos
 export const createProduct = async (req, res, next) => {
+    if(!req.session || !req.session.usuario || req.session.cargo !== "administrador"){
+        return next(new Error("No autorizado"));
+    }
     const data = req.body;
     const regexNumeros = /^\+?(\d.*){7,15}$/;
     const query = 'CALL create_product(?, ?, ?, @resultado)';

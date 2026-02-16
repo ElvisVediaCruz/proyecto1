@@ -10,7 +10,6 @@ export const generatePDF = (datos) => {
             "files",
             `ticket_${Date.now()}.pdf`
         );
-
         const doc = new pdfDocument({
             size: 'A7',
             margin: 10
@@ -25,7 +24,6 @@ export const generatePDF = (datos) => {
             doc.fontSize(10).text(`Cantidad: ${product.cantidad}`);
             doc.fontSize(10).text(`Subtotal: $${product.subTotal.toFixed(2)}`);
             doc.moveDown();
-            console.log('producto agregado al pdf: ', product);
         });
 
         doc.end();

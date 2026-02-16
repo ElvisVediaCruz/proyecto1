@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 import validators from '../utils/validators.js';
 
 export const createEmpleado = async (req, res, next) => {
+    if(!req.session || !req.session.usuario || req.session.cargo !== "administrador"){
+        return next(new Error("No autorizado"));
+    }
    const data = req.body;
    const regexTexto = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
    const regexNumeros = /^\+?(\d.*){7,15}$/;
